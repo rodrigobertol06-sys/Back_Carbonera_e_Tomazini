@@ -937,7 +937,7 @@
                                     <h3 class="text-xs font-bold text-[#1e293b]">1. Selecione a Data</h3>
                                     <div class="flex items-center justify-between pb-1.5 border-b border-[#e2e8f0]">
                                         <button onclick="mudarMesReagendamentoVendas(-1, ${idx})" class="w-6 h-6 rounded bg-[#ffffff] border border-[#cbd5e1] flex items-center justify-center text-xs"><i class="fa-solid fa-chevron-left"></i></button>
-                                        <span id="titulo_cal_vendas_${idx}" class="font-bold text-[11px] uppercase text-[#1e293b]">Mês / Ano</span>
+                                        <span id="titulo_cal_vendas_${idx}" class="font-bold text-[11px] uppercase text-[#1e293b]">MM/YYYY</span>
                                         <button onclick="mudarMesReagendamentoVendas(1, ${idx})" class="w-6 h-6 rounded bg-[#ffffff] border border-[#cbd5e1] flex items-center justify-center text-xs"><i class="fa-solid fa-chevron-right"></i></button>
                                     </div>
                                     <div class="grid grid-cols-7 text-center font-bold text-[9px] text-[#94a3b8]">
@@ -1074,10 +1074,10 @@
             vagasDoDia.forEach(vaga => {
                 const btnH = document.createElement('div');
                 if(vaga.disponivel) {
-                    btnH.className = "p-3 rounded-xl text-xs bg-white border border-[#cbd5e1] hover:bg-[#fffbeb] hover:border-[#d97706] font-bold cursor-pointer flex items-center justify-between shadow-sm _vaga_livre_vendas";
+                    btnH.className = `p-3 rounded-xl text-xs bg-white border border-[#cbd5e1] hover:bg-[#fffbeb] hover:border-[#d97706] font-bold cursor-pointer flex items-center justify-between shadow-sm _vaga_livre_vendas_${idx}`;
                     btnH.innerHTML = `<span class="font-extrabold text-sm text-[#1e293b]">${vaga.horario}</span><span class="text-[10px] text-[#d97706] bg-[#fffbeb] border border-[#d97706] px-2 py-0.5 rounded-full font-bold">Livre</span>`;
                     btnH.onclick = () => {
-                        document.querySelectorAll(`._vaga_livre_vendas`).forEach(b => {
+                        document.querySelectorAll(`._vaga_livre_vendas_${idx}`).forEach(b => {
                             b.classList.remove('bg-[#fffbeb]', 'border-[#d97706]');
                             b.classList.add('bg-white', 'border-[#cbd5e1]');
                         });
@@ -1308,16 +1308,12 @@
                 anotacaoFinal = obsAntiga ? `${obsAntiga}\n[${dataHoraAtual}] Fisio: ${obsNova}` : `[${dataHoraAtual}] Fisio: ${obsNova}`;
             }
 
-            const nomeResponsavelLogado = usuarioAtual || 'Marieli Bertol';
-
             const payload = {
                 action: 'atualizar_fisio',
                 id: idAgendamento,
                 statusConsulta: statusSelecionado,
                 anotacoes: anotacaoFinal,
-                usuarioLogado: nomeResponsavelLogado,
-                responsavel: nomeResponsavelLogado,
-                colN: nomeResponsavelLogado
+                colN: usuarioAtual || 'Fisioterapeuta'
             };
 
             try {
