@@ -655,7 +655,6 @@
             containerH.innerHTML = "";
             
             const agora = new Date();
-            // Converte a data selecionada (DD/MM/AAAA) para objeto Date para comparação de dias
             const [diaSel, mesSel, anoSel] = dataFormatadaStr.split('/').map(Number);
             const dataObjSel = new Date(anoSel, mesSel - 1, diaSel);
             
@@ -665,7 +664,6 @@
             vagasDoDia.forEach(vaga => {
                 const btnH = document.createElement('div');
                 
-                // Valida se o horário já passou caso seja o dia de hoje
                 let horarioPassado = false;
                 if (éHoje) {
                     const [horaVaga, minVaga] = vaga.horario.split(':').map(Number);
@@ -677,7 +675,6 @@
                 }
 
                 if (vaga.disponivel && !horarioPassado) {
-                    // VAGA LIVRE E VÁLIDA
                     btnH.className = "p-3 rounded-xl text-sm bg-[#ffffff] border border-[#cbd5e1] hover:border-[#300c07] font-bold cursor-pointer flex items-center justify-between shadow-sm _vaga_livre_agendamento transition-colors";
                     btnH.innerHTML = `<span class="font-extrabold text-[#1e293b]">${vaga.horario}</span><span class="text-[10px] text-[#059669] bg-[#ecfdf5] border border-[#a7f3d0] px-2 py-0.5 rounded-full font-bold">Livre</span>`;
                     btnH.onclick = () => {
@@ -691,7 +688,6 @@
                         document.getElementById('horarioSelecionadoInput').value = `${dataEscolhidaGlobal} às ${horarioEscolhidoGlobal}`;
                     };
                 } else {
-                    // VAGA OCUPADA OU HORÁRIO PASSADO ( CINZA / BLOQUEADO )
                     let motivoTexto = "Reservado";
                     if (horarioPassado && vaga.disponivel) {
                         motivoTexto = "Expirado";
@@ -758,7 +754,8 @@
                 alert("Erro de conexão ao salvar agendamento.");
             }
         }
-async function carregarAgendamentosHome() {
+
+        async function carregarAgendamentosHome() {
             const container = document.getElementById('listaAgendamentosHome');
             if (!container || document.getElementById('view-home').classList.contains('hidden')) return;
             try {
@@ -772,7 +769,6 @@ async function carregarAgendamentosHome() {
                     container.innerHTML = "";
                     container.className = "space-y-2 pr-1 max-h-[380px] overflow-y-auto custom-scroll";
 
-                    // Limita a exibição apenas aos últimos 3 agendamentos
                     const ultimosAgendamentos = res.agendamentos.slice(0, 3);
 
                     ultimosAgendamentos.forEach(item => {
@@ -798,7 +794,6 @@ async function carregarAgendamentosHome() {
                 }
             } catch (e) { console.log("Falha updates"); }
         }
-       
 
         async function carregarAgendamentosVendas() {
             const container = document.getElementById('listaAgendamentosVendas');
@@ -826,7 +821,7 @@ async function carregarAgendamentosHome() {
 
         function filtrarStatusVendas(statusAlvo) {
             statusFiltroVendasAtivo = statusAlvo;
-            statusAtualFiltroVendas = statusAlvo; // Atualiza a variável auxiliar para o Select inteligente
+            statusAtualFiltroVendas = statusAlvo;
             const balaoPre = document.getElementById('balaoPreAgendamento');
             const balaoReag = document.getElementById('balaoReagendamento');
 
@@ -864,7 +859,6 @@ async function carregarAgendamentosHome() {
 
             container.innerHTML = "";
             filtrados.forEach((item, idx) => {
-                // 1. Bloco para exibir a anotação/histórico da coluna L, caso exista
                 let htmlObservacao = '';
                 if (item.observacoes && item.observacoes.trim() !== '') {
                     htmlObservacao = `
@@ -875,7 +869,6 @@ async function carregarAgendamentosHome() {
                     `;
                 }
 
-                // 2. Filtro inteligente das opções do Select dependendo se é Pré-agendamento ou Reagendamento
                 let opcoesSelectHtml = '';
                 if (statusAtualFiltroVendas === 'Reagendar') {
                     opcoesSelectHtml = `
@@ -914,7 +907,6 @@ async function carregarAgendamentosHome() {
                         <span>Status Atual: <strong class="bg-[#fffbeb] text-[#d97706] px-2 py-0.5 rounded border border-[#fde68a]">${item.status}</strong></span>
                     </div>
 
-                    <!-- Anotações vindas da coluna L -->
                     ${htmlObservacao}
 
                     <div class="bg-[#f8fafc] p-3 rounded-xl border border-[#e2e8f0] flex flex-col md:flex-row items-center gap-3">
