@@ -772,8 +772,8 @@ async function carregarAgendamentosHome() {
                     container.innerHTML = "";
                     container.className = "space-y-2 pr-1 max-h-[380px] overflow-y-auto custom-scroll";
 
-                    // Limita a exibição apenas aos últimos 4 agendamentos
-                    const ultimosAgendamentos = res.agendamentos.slice(0, 4);
+                    // Limita a exibição apenas aos últimos 3 agendamentos
+                    const ultimosAgendamentos = res.agendamentos.slice(0, 3);
 
                     ultimosAgendamentos.forEach(item => {
                         const statusTexto = item.status || 'Pré-agendamento';
@@ -886,7 +886,7 @@ async function carregarAgendamentosHome() {
                     opcoesSelectHtml = `
                         <option value="Agendamento Confirmado">Confirmar Agendamento</option>
                         <option value="Reagendar">Reagendar Consulta</option>
-                        <option value="Cancelar">Consulta Cancelada</option>
+                        <option value="Cancelado">Consulta Cancelada</option>
                     `;
                 }
 
