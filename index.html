@@ -1504,7 +1504,65 @@
                 }
             } catch (e) { alert("Erro de conexão."); }
         }
+<div class="card-busca">
+  <h3>Consultar Histórico do Paciente</h3>
+  <select id="tipoBusca">
+    <option value="nome">Nome</option>
+    <option value="cpf">CPF</option>
+    <option value="telefone">Telefone</option>
+  </select>
+  <input type="text" id="termoBusca" placeholder="Digite para buscar...">
+  <button onclick="executarBuscaPaciente()">Buscar</button>
+</div>
 
+<div id="resultadoHistorico">
+  <!-- A tabela de atendimentos será injetada aqui via JavaScript -->
+</div>
+
+<script>
+function executarBuscaPaciente() {
+  const tipo = document.getElementById('tipoBusca').value;
+  const termo = document.getElementById('termoBusca').value;
+  
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res.sucesso) {
+        alert(res.mensagem);
+        return;
+      }
+      
+      let html = "";
+      if (res.historico.length === 0) {
+        html = "<p>Nenhum atendimento encontrado para este paciente.</p>";
+      } else {
+        html = `<table border="1" style="width:100%; border-collapse: collapse; margin-top: 10px;">
+                  <tr>
+                    <th>Data/Horário</th>
+                    <th>Paciente</th>
+                    <th>Profissional</th>
+                    <th>Status</th>
+                    <th>Anotações / Histórico</th>
+                  </tr>`;
+        
+        res.historico.forEach(item => {
+          html += `<tr>
+                    <td>${item.data} às ${item.horario}</td>
+                    <td>${item.cliente} (${item.cpf || 'Sem CPF'})</td>
+                    <td>${item.responsavel}</td>
+                    <td>${item.status}</td>
+                    <td>${item.observacao}</td>
+                   </tr>`;
+        });
+        html += `</table>`;
+      }
+      
+      document.getElementById('resultadoHistorico').innerHTML = html;
+    })
+    .withFailureHandler(function(err) {
+      alert("Erro na comunicação: " + err.message);
+    })
+    .buscarHistoricoPaciente({ tipo: tipo, termo: termo });
+}
     </script>
 </body>
 </html>
