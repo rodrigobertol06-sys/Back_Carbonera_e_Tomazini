@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbonera & Tomazini - Sistema de Agendamentos</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        html, body { height: 100vh; overflow: hidden; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; display: flex; flex-direction: column; }
+        .nav-card { transition: transform .15s ease, box-shadow .15s ease; cursor: pointer; }
+        .nav-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(48,12,7,.15); }
+        .fade-in { animation: fadeIn .2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        .page-scroll-container {
+            overflow-y: auto;
+            flex-grow: 1;
+            height: calc(100vh - 64px);
+        }
+    </style>
+</head>
+<body class="flex flex-col">
+
+    <!-- HEADER -->
+    <header class="bg-[#300c07] text-[#ffffff] shrink-0 z-40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <button id="btnMenu" onclick="toggleSidebar()" class="hidden p-2.5 rounded-lg text-[#cbd5e1] transition-colors bg-[#4a130b] hover:bg-[#5a1a10]">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                
+                <div class="cursor-pointer flex items-center gap-3 transition-transform hover:scale-105" onclick="trocarTela('home')">
+                    <img src="./assets/logo-escritorio.png" alt="Logo" class="h-9 w-auto object-contain">
+                    <div class="flex flex-col">
+                        <span class="text-xs md:text-sm font-bold tracking-wide text-white">Carbonera & Tomazini</span>
+                        <span class="text-[10px] md:text-xs text-[#cbd5e1]">Dra. Nayara D. Serozini | CREFITO-10 425494-F</span>
+                    </div>
+                </div>
+            </div>
+            <button id="btnLoginOut" onclick="abrirModalLogin()" class="text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center text-[#ffffff] bg-[#4a130b] hover:bg-[#5a1a10]">
+                <i class="fa-solid fa-lock mr-2"></i> Acesso Restrito
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 max-w-7xl w-full mx-auto relative overflow-hidden">
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="w-64 bg-[#ffffff] p-4 space-y-2 hidden shrink-0 z-30 h-full border-r border-[#e2e8f0] shadow-lg md:shadow-none">
+            <span class="block text-[10px] font-bold uppercase tracking-wider mb-2 px-2 mt-2 text-[#94a3b8]">Navegação</span>
+            <button onclick="trocarTela('home')" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors text-[#334155] hover:bg-[#f1f5f9]">
+                <i class="fa-solid fa-house w-5 text-[#300c07]"></i> Início
+            </button>
+
+            <button id="menu-vendas" onclick="trocarTela('modulo-vendas')" class="hidden w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-[#334155] hover:bg-[#f1f5f9]">
+                <i class="fa-solid fa-clipboard-check w-5 text-[#d97706]"></i> Painel de Confirmação
+            </button>
+
+            <button id="menu-sac" onclick="trocarTela('modulo-sac')" class="hidden w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-[#334155] hover:bg-[#f1f5f9]">
+                <i class="fa-solid fa-headset w-5 text-[#0284c7]"></i> Módulo SAC (DJ)
+            </button>
+
+            <button id="menu-fisio" onclick="trocarTela('modulo-fisio')" class="hidden w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-[#334155] hover:bg-[#f1f5f9]">
+                <i class="fa-solid fa-stethoscope w-5 text-[#059669]"></i> Módulo Fisioterapia
+            </button>
+
+            <hr class="my-2 border-[#f1f5f9]">
+            <span class="block text-[10px] font-bold uppercase tracking-wider mb-2 px-2 mt-4 text-[#94a3b8]">Administrativo</span>
+            <button id="menu-config" onclick="trocarTela('modulo-bloqueios')" class="hidden w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-[#334155] hover:bg-[#f1f5f9]">
+                <i class="fa-solid fa-gear w-5 text-[#b91c1c]"></i> Configurações Master
+            </button>
+        </aside>
+
+        <!-- CONTAINER COM ROLAGEM GERAL DA PÁGINA -->
+        <main class="page-scroll-container custom-scroll flex-grow p-6 w-full space-y-6">
+            
+            <!-- TELA HOME -->
+            <div id="view-home" class="fade-in space-y-6 block">
+                <div>
+                    <h2 class="font-bold text-xl text-[#300c07]">Sistema de Agendamentos</h2>
+                    <p class="text-sm text-[#64748b]">Selecione abaixo o serviço desejado ou acompanhe os agendamentos recentes.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div onclick="iniciarNovoAgendamento()" class="nav-card bg-[#ffffff] rounded-2xl overflow-hidden flex flex-col border border-[#e2e8f0]">
+                        <div class="w-full h-36 overflow-hidden flex items-center justify-center p-2 bg-[#f8fafc] border-b border-[#e2e8f0]">
+                            <img src="./assets/logo-fisio.png" alt="Logo Fisioterapia" class="w-full h-full object-contain">
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow bg-[#ffffff]">
+                            <h3 class="font-bold text-sm mb-1 text-[#300c07]">Agendar Consulta</h3>
+                            <p class="text-xs text-[#64748b]">Acesse para verificar datas disponíveis e marcar horários na agenda.</p>
+                        </div>
+                    </div>
+
+                    <div id="card-home-vendas" onclick="trocarTela('modulo-vendas')" class="hidden nav-card bg-[#ffffff] rounded-2xl overflow-hidden flex flex-col border border-[#d97706]/30">
+                        <div class="w-full h-36 overflow-hidden flex items-center justify-center p-6 bg-[#fffbeb] border-b border-[#e2e8f0] text-[#d97706]">
+                            <i class="fa-solid fa-clipboard-check text-5xl"></i>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow bg-[#ffffff]">
+                            <h3 class="font-bold text-sm mb-1 text-[#d97706]">Painel de Confirmação</h3>
+                            <p class="text-xs text-[#64748b]">Valide pré-agendamentos, reagendamentos e confirme horários.</p>
+                        </div>
+                    </div>
+
+                    <div id="card-home-sac" onclick="trocarTela('modulo-sac')" class="hidden nav-card bg-[#ffffff] rounded-2xl overflow-hidden flex flex-col border border-[#0284c7]/30">
+                        <div class="w-full h-36 overflow-hidden flex items-center justify-center p-6 bg-[#f0f9ff] border-b border-[#e2e8f0] text-[#0284c7]">
+                            <i class="fa-solid fa-headset text-5xl"></i>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow bg-[#ffffff]">
+                            <h3 class="font-bold text-sm mb-1 text-[#0284c7]">Painel SAC / Registro DJ</h3>
+                            <p class="text-xs text-[#64748b]">Gerencie agendamentos confirmados e registre no DJ.</p>
+                        </div>
+                    </div>
+
+                    <div id="card-home-fisio" onclick="trocarTela('modulo-fisio')" class="hidden nav-card bg-[#ffffff] rounded-2xl overflow-hidden flex flex-col border border-[#059669]/30">
+                        <div class="w-full h-36 overflow-hidden flex items-center justify-center p-6 bg-[#ecfdf5] border-b border-[#e2e8f0] text-[#059669]">
+                            <i class="fa-solid fa-stethoscope text-5xl"></i>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow bg-[#ffffff]">
+                            <h3 class="font-bold text-sm mb-1 text-[#059669]">Painel Fisioterapia</h3>
+                            <p class="text-xs text-[#64748b]">Registre anotações de consultas e atualize os status de atendimento.</p>
+                        </div>
+                    </div>
+
+                    <div id="painelHistoricoHome" class="md:col-span-2 bg-[#ffffff] rounded-2xl p-5 flex flex-col justify-between border border-[#e2e8f0]">
+                        <div class="flex items-center justify-between mb-3 border-b border-[#f1f5f9] pb-3">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-check text-[#300c07]"></i>
+                                <h3 class="font-bold text-sm text-[#300c07]">Histórico de Agendamentos</h3>
+                            </div>
+                            <span class="text-[10px] bg-[#ecfdf5] text-[#047857] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 border border-[#a7f3d0]">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse"></span> Ao Vivo
+                            </span>
+                        </div>
+                        <div id="listaAgendamentosHome" class="space-y-2 pr-1">
+                            <p class="text-xs text-[#94a3b8] text-center py-4">Carregando agendamentos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TELA MÓDULO VENDAS / CONFIRMAÇÕES -->
+            <div id="view-modulo-vendas" class="fade-in hidden space-y-6">
+                <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-4">
+                    <div>
+                        <h2 class="font-bold text-xl text-[#d97706]">Painel de Confirmações e Pendências</h2>
+                        <p class="text-sm text-[#64748b]">Filtre e confirme os pré-agendamentos ou reagendamentos pendentes.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="trocarTela('home')" class="text-xs bg-[#ffffff] text-[#64748b] hover:text-[#1e293b] border border-[#e2e8f0] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-arrow-left mr-1"></i> Voltar</button>
+                        <button onclick="carregarAgendamentosVendas()" class="text-xs bg-[#fffbeb] text-[#d97706] hover:bg-[#fef3c7] border border-[#fde68a] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-rotate mr-1"></i> Atualizar</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div onclick="filtrarStatusVendas('Pré-agendamento')" id="balaoPreAgendamento" class="cursor-pointer bg-white p-4 rounded-xl border-2 border-[#d97706] shadow-sm flex items-center justify-between transition-all hover:bg-[#fffbeb]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-[#fffbeb] text-[#d97706] flex items-center justify-center font-bold text-lg">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs text-[#64748b] font-bold uppercase">Pré-agendamentos</h4>
+                                <span id="contadorPreAgendamento" class="text-lg font-extrabold text-[#1e293b]">0</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-[#fffbeb] text-[#d97706] font-bold px-2.5 py-1 rounded-full border border-[#fde68a]">Ver pendentes</span>
+                    </div>
+
+                    <div onclick="filtrarStatusVendas('Reagendar')" id="balaoReagendamento" class="cursor-pointer bg-white p-4 rounded-xl border border-[#e2e8f0] shadow-sm flex items-center justify-between transition-all hover:bg-[#f8fafc]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-[#f1f5f9] text-[#64748b] flex items-center justify-center font-bold text-lg">
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs text-[#64748b] font-bold uppercase">Reagendamentos</h4>
+                                <span id="contadorReagendamento" class="text-lg font-extrabold text-[#1e293b]">0</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-[#f1f5f9] text-[#64748b] font-bold px-2.5 py-1 rounded-full border border-[#e2e8f0]">Ver pendentes</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-[#e2e8f0] flex flex-col md:flex-row gap-3 items-center">
+                    <div class="w-full md:w-1/3">
+                        <label class="block text-[10px] font-bold text-[#64748b] uppercase mb-1">Filtrar por campo:</label>
+                        <select id="tipoFiltroVendas" class="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] text-xs font-semibold bg-white focus:outline-none">
+                            <option value="vendedor">Vendedor / Responsável</option>
+                            <option value="telefone">Telefone</option>
+                            <option value="oa">Número da OA</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <label class="block text-[10px] font-bold text-[#64748b] uppercase mb-1">Pesquisar:</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-[#94a3b8]"><i class="fa-solid fa-search text-xs"></i></span>
+                            <input type="text" id="inputBuscaVendas" oninput="renderizarListaVendasFiltrada()" placeholder="Digite para buscar..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-[#cbd5e1] text-xs focus:outline-none focus:border-[#d97706]">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[#ffffff] rounded-2xl p-5 border border-[#e2e8f0] space-y-4">
+                    <div id="listaAgendamentosVendas" class="space-y-3">
+                        <p class="text-xs text-[#94a3b8] text-center py-8">Carregando itens pendentes...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TELA MÓDULO SAC (REGISTRO DJ) -->
+            <div id="view-modulo-sac" class="fade-in hidden space-y-6">
+                <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-4">
+                    <div>
+                        <h2 class="font-bold text-xl text-[#0284c7]">Módulo SAC - Registro no DJ</h2>
+                        <p class="text-sm text-[#64748b]">Agendamentos confirmados aguardando lançamento no DJ.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="trocarTela('home')" class="text-xs bg-[#ffffff] text-[#64748b] hover:text-[#1e293b] border border-[#e2e8f0] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-arrow-left mr-1"></i> Voltar</button>
+                        <button onclick="carregarAgendamentosSAC()" class="text-xs bg-[#f0f9ff] text-[#0284c7] hover:bg-[#e0f2fe] border border-[#bae6fd] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-rotate mr-1"></i> Atualizar Lista</button>
+                    </div>
+                </div>
+                <div class="bg-[#ffffff] rounded-2xl p-5 border border-[#e2e8f0] space-y-4">
+                    <div id="listaAgendamentosSAC" class="space-y-3">
+                        <p class="text-xs text-[#94a3b8] text-center py-8">Carregando agendamentos confirmados...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TELA MÓDULO FISIOTERAPIA -->
+            <div id="view-modulo-fisio" class="fade-in hidden space-y-6">
+                <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-4">
+                    <div>
+                        <h2 class="font-bold text-xl text-[#059669]">Módulo Fisioterapia - Prontuários e Status</h2>
+                        <p class="text-sm text-[#64748b]">Insira anotações e atualize o status da consulta.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="trocarTela('home')" class="text-xs bg-[#ffffff] text-[#64748b] hover:text-[#1e293b] border border-[#e2e8f0] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-arrow-left mr-1"></i> Voltar</button>
+                        <button onclick="carregarAgendamentosFisio()" class="text-xs bg-[#ecfdf5] text-[#059669] hover:bg-[#d1fae5] border border-[#a7f3d0] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-rotate mr-1"></i> Atualizar Lista</button>
+                    </div>
+                </div>
+                <div class="bg-[#ffffff] rounded-2xl p-5 border border-[#e2e8f0] space-y-4">
+                    <div id="listaAgendamentosFisio" class="space-y-3">
+                        <p class="text-xs text-[#94a3b8] text-center py-8">Carregando consultas liberadas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TELA AGENDAMENTOS -->
+            <div id="view-modulo-agendamento" class="fade-in hidden space-y-6">
+                <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-4">
+                    <h2 class="font-bold text-xl text-[#300c07]">Novo Agendamento</h2>
+                    <button onclick="trocarTela('home')" class="text-xs text-[#64748b] hover:text-[#1e293b] bg-[#ffffff] px-3 py-1.5 rounded-lg shadow-sm border border-[#e2e8f0] transition-colors"><i class="fa-solid fa-arrow-left mr-1"></i> Voltar</button>
+                </div>
+
+                <div class="bg-[#ffffff] p-6 rounded-2xl space-y-6 border border-[#e2e8f0]">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div class="md:col-span-5 bg-[#f8fafc] p-4 rounded-xl border border-[#e2e8f0] space-y-3">
+                            <h3 class="text-sm font-bold text-[#1e293b] mb-2">1. Selecione a Data</h3>
+                            <div class="flex items-center justify-between pb-2 border-b border-[#e2e8f0]">
+                                <button onclick="mudarMesAgendamento(-1)" class="w-7 h-7 rounded-lg bg-[#ffffff] border border-[#cbd5e1] flex items-center justify-center text-[#334155] hover:bg-[#f1f5f9]"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                                <h3 id="tituloCalendarioAgendamento" class="font-bold text-xs text-[#1e293b] uppercase tracking-wide"></h3>
+                                <button onclick="mudarMesAgendamento(1)" class="w-7 h-7 rounded-lg bg-[#ffffff] border border-[#cbd5e1] flex items-center justify-center text-[#334155] hover:bg-[#f1f5f9]"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                            </div>
+                            <div class="grid grid-cols-7 text-center font-bold text-[10px] text-[#94a3b8]">
+                                <div>D</div><div>S</div><div>T</div><div>Q</div><div>Q</div><div>S</div><div>S</div>
+                            </div>
+                            <div id="diasCalendarioAgendamentoGrid" class="grid grid-cols-7 gap-1 text-center"></div>
+                        </div>
+
+                        <div class="md:col-span-7 bg-[#f8fafc] p-4 rounded-xl border border-[#e2e8f0] flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="flex items-center justify-between pb-2 mb-3 border-b border-[#e2e8f0]">
+                                    <h3 class="font-bold text-xs text-[#334155]">Horários para: <span id="dataSelecionadaAgendamentoLabel" class="text-[#300c07]">Nenhuma data</span></h3>
+                                    <span id="badgeStatusDataAgendamento" class="text-[10px] px-2 py-0.5 rounded font-bold bg-[#e2e8f0] text-[#64748b]">Selecione o dia</span>
+                                </div>
+                                <div id="listaHorariosDisponiveisDia" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[300px] overflow-y-auto custom-scroll pr-1">
+                                    <p class="col-span-2 text-xs text-[#94a3b8] text-center py-6">Clique em um dia útil no calendário ao lado.</p>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 border-t border-[#e2e8f0]">
+                                <span class="text-[11px] font-bold text-[#334155] block mb-1">Horário Selecionado:</span>
+                                <input type="text" id="horarioSelecionadoInput" readonly placeholder="Nenhum horário escolhido" class="w-full px-3 py-2 bg-[#ffffff] rounded-lg text-xs border border-[#cbd5e1] font-semibold text-[#1e293b] focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 pt-4 border-t border-[#f1f5f9]">
+                        <h3 class="text-sm font-bold text-[#1e293b]">2. Dados do Paciente/Cliente</h3>
+                        <div>
+                            <label class="block text-xs font-bold mb-1 text-[#334155]">Nome do Cliente</label>
+                            <input type="text" id="nomeCliente" placeholder="Nome completo" class="w-full px-3 py-2 rounded-lg text-xs border border-[#cbd5e1] focus:outline-none focus:border-[#300c07]">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-[#334155]">CPF (Opcional)</label>
+                                <input type="text" id="cpfCliente" placeholder="000.000.000-00" class="w-full px-3 py-2 rounded-lg text-xs border border-[#cbd5e1] focus:outline-none focus:border-[#300c07]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-[#334155]">Telefone / WhatsApp</label>
+                                <input type="text" id="telefoneCliente" placeholder="(00) 00000-0000" class="w-full px-3 py-2 rounded-lg text-xs border border-[#cbd5e1] focus:outline-none focus:border-[#300c07]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] mt-2">
+                        <h3 class="text-sm font-bold text-[#300c07] col-span-full mb-1">3. Dados do Agendador</h3>
+                        
+                        <div>
+                            <label class="block text-xs font-bold mb-1 text-[#334155]">Seu Setor</label>
+                            <select id="setorVendedor" onchange="atualizarResponsaveisPorSetor()" class="w-full px-3 py-2 bg-[#ffffff] rounded-lg text-sm border border-[#cbd5e1] font-semibold text-[#1e293b] focus:outline-none focus:border-[#300c07]">
+                                <option value="">Carregando setores...</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold mb-1 text-[#334155]">Responsável</label>
+                            <select id="nomeVendedor" class="w-full px-3 py-2 bg-[#ffffff] rounded-lg text-sm border border-[#cbd5e1] font-semibold text-[#1e293b] focus:outline-none focus:border-[#300c07]" disabled>
+                                <option value="">Selecione um setor primeiro...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                        <button onclick="enviarAgendamento('Pré-agendamento')" class="w-full bg-[#64748b] hover:bg-[#475569] text-[#ffffff] py-3 rounded-lg text-sm font-bold transition-colors shadow-sm">
+                            <i class="fa-solid fa-clock mr-2"></i> Salvar como Pré-agendamento
+                        </button>
+                        <button onclick="enviarAgendamento('Agendamento Confirmado')" class="w-full bg-[#d97706] hover:bg-[#b45309] text-[#ffffff] py-3 rounded-lg text-sm font-bold transition-colors shadow-sm">
+                            <i class="fa-solid fa-circle-check mr-2"></i> Salvar como Agendamento Confirmado
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TELA MASTER -->
+            <div id="view-modulo-bloqueios" class="fade-in hidden space-y-6">
+                <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-4">
+                    <div>
+                        <h2 class="font-bold text-xl text-[#300c07]">Painel Master</h2>
+                        <p class="text-sm text-[#64748b]">Área restrita de configurações gerais.</p>
+                    </div>
+                    <button onclick="trocarTela('home')" class="text-xs bg-[#ffffff] text-[#64748b] hover:text-[#1e293b] border border-[#e2e8f0] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-arrow-left mr-1"></i> Voltar</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL DE LOGIN -->
+    <div id="modalLogin" class="fixed inset-0 backdrop-blur-sm hidden items-center justify-center z-50 bg-[#300c07]/40">
+        <div class="bg-[#ffffff] rounded-2xl p-6 shadow-xl w-full max-w-sm">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-[#300c07]">Acesso Restrito</h3>
+                <button onclick="fecharModalLogin()" class="text-[#94a3b8] hover:text-[#334155]"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <input type="text" id="usuarioInput" placeholder="Nome de Usuário" class="w-full px-3 py-2 rounded-lg text-xs mb-3 border border-[#cbd5e1] focus:outline-none">
+            <input type="password" id="senhaInput" placeholder="Sua senha" class="w-full px-3 py-2 rounded-lg text-xs mb-4 border border-[#cbd5e1] focus:outline-none">
+            <button id="btnFazerLogin" onclick="fazerLogin()" class="w-full text-[#ffffff] py-2 rounded-lg text-xs font-bold transition-colors bg-[#300c07] hover:bg-[#4a130b]">Entrar no Sistema</button>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        const URL_DO_SCRIPT = "https://script.google.com/macros/s/AKfycbyRSA5Q5pkvyjVhK8EkzMw5g95ZMaQtbDs1CumS8hm2dRlCqohwUjrloGYdPO71OS-Z/exec";
+        
+        let isLogado = false;
+        let usuarioAtual = "";
+        let nivelUsuarioAtual = "";
+        let setorUsuarioAtual = "";
+        
+        const listaDeTelas = ['home', 'modulo-agendamento', 'modulo-bloqueios', 'modulo-vendas', 'modulo-sac', 'modulo-fisio'];
+
+        let dataAtualAgendamento = new Date();
+        let dataEscolhidaGlobal = "";
+        let horarioEscolhidoGlobal = "";
+        let gradeDisponibilidadeCache = [];
+        let mapeamentoUsuariosGlobal = [];
+
+        let cacheAgendamentosVendas = [];
+        let statusFiltroVendasAtivo = 'Pré-agendamento';
+        let statusAtualFiltroVendas = 'Pré-agendamento'; // Variável de controle do select inteligente
+
+        let dataReagendamentoGlobal = "";
+        let horarioReagendamentoGlobal = "";
+        let dataAtualReagendamentoVendas = new Date();
+        let gradeReagendamentoCache = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            carregarConfiguracoesIniciais();
+            carregarAgendamentosHome();
+            setInterval(carregarAgendamentosHome, 10000);
+
+            const inputUsuario = document.getElementById('usuarioInput');
+            const inputSenha = document.getElementById('senhaInput');
+            const btnFazerLogin = document.getElementById('btnFazerLogin');
+
+            if (inputUsuario && inputSenha) {
+                inputUsuario.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); inputSenha.focus(); }
+                });
+                inputSenha.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); if (btnFazerLogin) btnFazerLogin.click(); }
+                });
+            }
+        });
+
+        function copiarEAbrirWhatsApp(telefone) {
+            const telLimpo = telefone.replace(/\D/g, '');
+            const urlSegura = `https://wa.me/55${telLimpo}`;
+            window.open(urlSegura, '_blank');
+        }
+
+        async function carregarConfiguracoesIniciais() {
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'buscar_configuracoes_iniciais' }) }).then(r => r.json());
+                if (res.sucesso) {
+                    mapeamentoUsuariosGlobal = res.mapeamentoUsuarios || [];
+
+                    const selectSetor = document.getElementById('setorVendedor');
+                    selectSetor.innerHTML = '<option value="">Selecione o setor...</option>';
+                    if (res.setores) {
+                        res.setores.forEach(setor => {
+                            const opt = document.createElement('option');
+                            opt.value = setor;
+                            opt.textContent = setor;
+                            selectSetor.appendChild(opt);
+                        });
+                    }
+                    
+                    const selectVendedor = document.getElementById('nomeVendedor');
+                    selectVendedor.innerHTML = '<option value="">Selecione um setor primeiro...</option>';
+                    selectVendedor.disabled = true;
+                }
+            } catch (e) {
+                const selectSetor = document.getElementById('setorVendedor');
+                selectSetor.innerHTML = '<option value="">Erro ao carregar setores</option>';
+                const selectVendedor = document.getElementById('nomeVendedor');
+                selectVendedor.innerHTML = '<option value="">Erro ao carregar responsáveis</option>';
+            }
+        }
+
+        function atualizarResponsaveisPorSetor() {
+            const setorSelecionado = document.getElementById('setorVendedor').value;
+            const selectVendedor = document.getElementById('nomeVendedor');
+
+            selectVendedor.innerHTML = '<option value="">Selecione o responsável...</option>';
+
+            if (!setorSelecionado) {
+                selectVendedor.innerHTML = '<option value="">Selecione um setor primeiro...</option>';
+                selectVendedor.disabled = true;
+                return;
+            }
+
+            selectVendedor.disabled = false;
+            const usuariosFiltrados = mapeamentoUsuariosGlobal.filter(item => item.setor === setorSelecionado);
+
+            usuariosFiltrados.forEach(user => {
+                const opt = document.createElement('option');
+                opt.value = user.nome;
+                opt.textContent = user.nome;
+                selectVendedor.appendChild(opt);
+            });
+        }
+
+        function trocarTela(nomeTela) {
+            listaDeTelas.forEach(tela => {
+                const elemento = document.getElementById(`view-${tela}`);
+                if (elemento) { elemento.classList.add('hidden'); elemento.classList.remove('block'); }
+            });
+            const telaAtiva = document.getElementById(`view-${nomeTela}`);
+            if (telaAtiva) { telaAtiva.classList.remove('hidden'); telaAtiva.classList.add('block'); }
+            
+            if (nomeTela === 'home') carregarAgendamentosHome();
+            if (nomeTela === 'modulo-vendas') carregarAgendamentosVendas();
+            if (nomeTela === 'modulo-sac') carregarAgendamentosSAC();
+            if (nomeTela === 'modulo-fisio') carregarAgendamentosFisio();
+        }
+
+        function toggleSidebar() { 
+            if(isLogado) { document.getElementById('sidebar').classList.toggle('hidden'); }
+        }
+
+        function abrirModalLogin() {
+            if (isLogado) {
+                efetuarLogout();
+            } else {
+                document.getElementById('modalLogin').classList.remove('hidden');
+                document.getElementById('modalLogin').classList.add('flex');
+                setTimeout(() => { const inp = document.getElementById('usuarioInput'); if(inp) inp.focus(); }, 100);
+            }
+        }
+
+        function fecharModalLogin() {
+            document.getElementById('modalLogin').classList.add('hidden');
+            document.getElementById('modalLogin').classList.remove('flex');
+        }
+
+        async function fazerLogin() {
+            const usuarioDigitado = document.getElementById('usuarioInput').value.trim();
+            const senhaDigitada = document.getElementById('senhaInput').value;
+            const btn = document.getElementById('btnFazerLogin');
+            if(!usuarioDigitado || !senhaDigitada) return alert("Preencha todos os campos.");
+
+            btn.innerText = "Aguarde..."; btn.disabled = true;
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'login', usuario: usuarioDigitado, senha: senhaDigitada }) }).then(r => r.json());
+                if (res.sucesso) {
+                    isLogado = true;
+                    usuarioAtual = res.nome;
+                    nivelUsuarioAtual = res.nivel || "";
+                    setorUsuarioAtual = res.setor || ""; 
+                    fecharModalLogin();
+
+                    document.getElementById('sidebar').classList.remove('hidden');
+                    document.getElementById('btnMenu').classList.remove('hidden');
+                    document.getElementById('btnLoginOut').innerHTML = '<i class="fa-solid fa-right-from-bracket mr-2"></i> Sair';
+                    
+                    document.getElementById('setorVendedor').value = res.setor;
+                    atualizarResponsaveisPorSetor();
+                    document.getElementById('nomeVendedor').value = res.nome;
+
+                    if (res.nivel === "Master" || res.setor === "Vendas" || res.setor === "SAC" || res.nome.toLowerCase().includes("sac")) {
+                        document.getElementById('menu-vendas').classList.remove('hidden');
+                        document.getElementById('card-home-vendas').classList.remove('hidden');
+                    }
+                    if (res.nivel === "Master" || res.setor === "SAC" || res.nome.toLowerCase().includes("sac")) {
+                        document.getElementById('menu-sac').classList.remove('hidden');
+                        document.getElementById('card-home-sac').classList.remove('hidden');
+                    }
+                    if (res.nivel === "Master" || res.setor === "Fisio" || res.nome.toLowerCase().includes("fisio") || res.nome.toLowerCase().includes("nayara")) {
+                        document.getElementById('menu-fisio').classList.remove('hidden');
+                        document.getElementById('card-home-fisio').classList.remove('hidden');
+                    }
+                    if (res.nivel === "Master") {
+                        document.getElementById('menu-config').classList.remove('hidden');
+                    }
+
+                } else alert(res.mensagem);
+            } catch (erro) { alert("Erro de conexão com o script."); } finally { btn.innerText = "Entrar no Sistema"; btn.disabled = false; }
+        }
+
+        function efetuarLogout() {
+            isLogado = false;
+            usuarioAtual = ""; nivelUsuarioAtual = ""; setorUsuarioAtual = "";
+
+            document.getElementById('sidebar').classList.add('hidden');
+            document.getElementById('btnMenu').classList.add('hidden');
+            document.getElementById('menu-config').classList.add('hidden');
+            document.getElementById('menu-vendas').classList.add('hidden');
+            document.getElementById('menu-sac').classList.add('hidden');
+            document.getElementById('menu-fisio').classList.add('hidden');
+            document.getElementById('card-home-vendas').classList.add('hidden');
+            document.getElementById('card-home-sac').classList.add('hidden');
+            document.getElementById('card-home-fisio').classList.add('hidden');
+            
+            document.getElementById('btnLoginOut').innerHTML = '<i class="fa-solid fa-lock mr-2"></i> Acesso Restrito';
+            document.getElementById('nomeVendedor').value = "";
+            document.getElementById('setorVendedor').value = "";
+            document.getElementById('usuarioInput').value = "";
+            document.getElementById('senhaInput').value = "";
+            
+            trocarTela('home');
+        }
+
+        // --- FUNÇÕES DE AGENDAMENTO ---
+        function iniciarNovoAgendamento() {
+            trocarTela('modulo-agendamento');
+            dataAtualAgendamento = new Date();
+            carregarCalendarioAgendamento();
+        }
+
+        async function carregarCalendarioAgendamento() {
+            const ano = dataAtualAgendamento.getFullYear();
+            const mes = dataAtualAgendamento.getMonth() + 1;
+            const mesStr = `${ano}-${String(mes).padStart(2, '0')}`;
+            
+            const mesesNomes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            document.getElementById('tituloCalendarioAgendamento').textContent = `${mesesNomes[mes - 1]} / ${ano}`;
+            
+            const grid = document.getElementById('diasCalendarioAgendamentoGrid');
+            grid.innerHTML = '<div class="col-span-7 text-[10px] text-[#94a3b8] py-2">Carregando...</div>';
+
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'buscar_grade_disponibilidade', mes: mesStr }) }).then(r => r.json());
+                if (res.sucesso) {
+                    gradeDisponibilidadeCache = res.grade;
+                    renderizarDiasAgendamento(ano, mes);
+                }
+            } catch (e) { grid.innerHTML = '<div class="col-span-7 text-[10px] text-[#ef4444]">Erro de rede.</div>'; }
+        }
+
+        function mudarMesAgendamento(direcao) {
+            dataAtualAgendamento.setMonth(dataAtualAgendamento.getMonth() + direcao);
+            carregarCalendarioAgendamento();
+        }
+
+        function renderizarDiasAgendamento(ano, mes) {
+            const grid = document.getElementById('diasCalendarioAgendamentoGrid');
+            grid.innerHTML = "";
+
+            const primeiroDiaSemana = new Date(ano, mes - 1, 1).getDay();
+            const ultimoDiaMes = new Date(ano, mes, 0).getDate();
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+            for (let i = 0; i < primeiroDiaSemana; i++) grid.appendChild(document.createElement('div'));
+
+            for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+                const dataObj = new Date(ano, mes - 1, dia);
+                const isPassado = dataObj < hoje;
+                const dataFormatadaStr = `${String(dia).padStart(2, '0')}/${String(mes).padStart(2, '0')}/${ano}`;
+
+                const vagasDoDia = gradeDisponibilidadeCache.filter(item => item.data === dataFormatadaStr);
+                const vagasLivres = vagasDoDia.filter(item => item.disponivel);
+
+                const btn = document.createElement('button');
+                let classes = "p-1 rounded-lg text-xs font-bold border h-10 flex flex-col items-center justify-center transition-colors ";
+                
+                if (isPassado) {
+                    classes += "bg-[#f1f5f9] text-[#94a3b8] border-[#e2e8f0] cursor-not-allowed opacity-60";
+                    btn.className = classes;
+                    btn.innerHTML = `<span>${dia}</span>`;
+                } else if (vagasDoDia.length === 0) {
+                    classes += "bg-[#fef2f2] text-[#b91c1c] border-[#fecaca] opacity-80 cursor-not-allowed";
+                    btn.className = classes;
+                    btn.innerHTML = `<span>${dia}</span>`;
+                } else if (vagasLivres.length === 0) {
+                    classes += "bg-[#e2e8f0] text-[#334155] border-[#cbd5e1]";
+                    btn.className = classes;
+                    btn.innerHTML = `<span>${dia}</span><span class="text-[8px] text-[#64748b] font-bold leading-none mt-0.5">LOT</span>`;
+                    btn.onclick = () => selecionarDiaAgendamento(dataFormatadaStr, vagasDoDia);
+                } else {
+                    classes += "bg-[#ffffff] text-[#1e293b] hover:bg-[#f8fafc] hover:border-[#300c07] border-[#cbd5e1] shadow-sm";
+                    btn.className = classes;
+                    btn.innerHTML = `<span>${dia}</span><span class="text-[8px] text-[#059669] font-extrabold leading-none mt-0.5">${vagasLivres.length} L</span>`;
+                    btn.onclick = () => selecionarDiaAgendamento(dataFormatadaStr, vagasDoDia);
+                }
+                grid.appendChild(btn);
+            }
+        }
+
+        function selecionarDiaAgendamento(dataFormatadaStr, vagasDoDia) {
+            dataEscolhidaGlobal = dataFormatadaStr;
+            document.getElementById('dataSelecionadaAgendamentoLabel').textContent = dataFormatadaStr;
+            
+            const badge = document.getElementById('badgeStatusDataAgendamento');
+            badge.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-[#fef3c7] text-[#92400e] border border-[#fde68a]";
+            badge.textContent = "Data Selecionada";
+
+            const containerH = document.getElementById('listaHorariosDisponiveisDia');
+            containerH.innerHTML = "";
+            
+            vagasDoDia.forEach(vaga => {
+                const btnH = document.createElement('div');
+                if(vaga.disponivel) {
+                    btnH.className = "p-3 rounded-xl text-sm bg-[#ffffff] border border-[#cbd5e1] hover:border-[#300c07] font-bold cursor-pointer flex items-center justify-between shadow-sm _vaga_livre_agendamento transition-colors";
+                    btnH.innerHTML = `<span class="font-extrabold text-[#1e293b]">${vaga.horario}</span><span class="text-[10px] text-[#059669] bg-[#ecfdf5] border border-[#a7f3d0] px-2 py-0.5 rounded-full font-bold">Livre</span>`;
+                    btnH.onclick = () => {
+                        document.querySelectorAll('._vaga_livre_agendamento').forEach(b => {
+                            b.classList.remove('border-[#300c07]', 'ring-1', 'ring-[#300c07]');
+                            b.classList.add('border-[#cbd5e1]');
+                        });
+                        btnH.classList.remove('border-[#cbd5e1]');
+                        btnH.classList.add('border-[#300c07]', 'ring-1', 'ring-[#300c07]');
+                        horarioEscolhidoGlobal = vaga.horario;
+                        document.getElementById('horarioSelecionadoInput').value = `${dataEscolhidaGlobal} às ${horarioEscolhidoGlobal}`;
+                    };
+                } else {
+                    btnH.className = "p-3 rounded-xl text-xs bg-[#f1f5f9] border border-[#e2e8f0] flex flex-col justify-between opacity-80 cursor-not-allowed";
+                    btnH.innerHTML = `
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-extrabold text-sm text-[#94a3b8] line-through">${vaga.horario}</span>
+                            <span class="text-[9px] bg-[#fee2e2] text-[#b91c1c] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-[#fecaca]">Ocupado</span>
+                        </div>
+                    `;
+                }
+                containerH.appendChild(btnH);
+            });
+        }
+
+        async function enviarAgendamento(statusParaSalvar) {
+            const nomeCliente = document.getElementById('nomeCliente').value.trim();
+            const cpfCliente = document.getElementById('cpfCliente').value.trim();
+            const telefoneCliente = document.getElementById('telefoneCliente').value.trim();
+            const setorVendedor = document.getElementById('setorVendedor').value;
+            const nomeVendedor = document.getElementById('nomeVendedor').value;
+
+            if (!dataEscolhidaGlobal || !horarioEscolhidoGlobal) return alert("Selecione uma data e horário!");
+            if (!nomeCliente || !telefoneCliente) return alert("Preencha o nome e telefone do cliente!");
+            if (!setorVendedor || !nomeVendedor) return alert("Selecione o setor e o responsável!");
+
+            const payload = {
+                action: 'novo_agendamento',
+                data: dataEscolhidaGlobal,
+                horario: horarioEscolhidoGlobal,
+                cliente: nomeCliente,
+                cpf: cpfCliente,
+                telefone: telefoneCliente,
+                setor: setorVendedor,
+                responsavel: nomeVendedor,
+                status: statusParaSalvar
+            };
+
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json());
+                if (res.sucesso) {
+                    alert("Agendamento realizado com sucesso!");
+                    document.getElementById('nomeCliente').value = "";
+                    document.getElementById('cpfCliente').value = "";
+                    document.getElementById('telefoneCliente').value = "";
+                    document.getElementById('horarioSelecionadoInput').value = "";
+                    horarioEscolhidoGlobal = "";
+                    carregarCalendarioAgendamento(); 
+                    trocarTela('home');
+                } else {
+                    alert(res.mensagem || "Erro ao salvar o agendamento.");
+                }
+            } catch (e) {
+                alert("Erro de conexão ao salvar agendamento.");
+            }
+        }
+
+        async function carregarAgendamentosHome() {
+            const container = document.getElementById('listaAgendamentosHome');
+            if (!container || document.getElementById('view-home').classList.contains('hidden')) return;
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'buscar_agendamentos_ativos' }) }).then(r => r.json());
+                if (res.sucesso) {
+                    if (res.agendamentos.length === 0) { container.innerHTML = '<p class="text-xs text-[#94a3b8] text-center py-4">Nenhum agendamento ativo.</p>'; return; }
+                    container.innerHTML = "";
+                    res.agendamentos.forEach(item => {
+                        const statusTexto = item.status || 'Pré-agendamento';
+                        const div = document.createElement('div');
+                        div.className = "flex items-center justify-between p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-xs hover:border-[#cbd5e1] transition-colors";
+                        div.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <div class="bg-[#fef3c7] text-[#78350f] px-3 py-2 rounded-lg text-center leading-tight border border-[#fde68a]">
+                                    <span class="block font-bold text-[10px]">${item.dataConsulta}</span>
+                                    <span class="block font-extrabold text-sm">${item.horario}</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-[#1e293b] block text-sm">${item.cliente} (${item.oa})</span>
+                                    <span class="text-[#64748b] block text-[11px] mb-1"><i class="fa-solid fa-phone text-[9px] mr-1"></i>${item.telefone}</span>
+                                    <span class="text-[#94a3b8] block text-[10px]">Resp: <b>${item.responsavel}</b> | Status: <b>${statusTexto}</b></span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full font-bold text-[10px] bg-[#fef9c3] text-[#854d0e] border border-[#fde047]">${statusTexto}</span>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch (e) { console.log("Falha updates"); }
+        }
+
+        async function carregarAgendamentosVendas() {
+            const container = document.getElementById('listaAgendamentosVendas');
+            container.innerHTML = '<p class="text-xs text-[#94a3b8] text-center py-8"><i class="fa-solid fa-spinner fa-spin text-lg"></i><br>Buscando pendências...</p>';
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'buscar_agendamentos_ativos' }) }).then(r => r.json());
+                if (res.sucesso) {
+                    cacheAgendamentosVendas = res.agendamentos.filter(item => {
+                        const st = (item.status || '').toLowerCase();
+                        return st.includes('pré-agendamento') || st.includes('reagendar');
+                    });
+
+                    const qtdPre = cacheAgendamentosVendas.filter(i => (i.status || '').toLowerCase().includes('pré-agendamento')).length;
+                    const qtdReag = cacheAgendamentosVendas.filter(i => (i.status || '').toLowerCase().includes('reagendar')).length;
+                    
+                    document.getElementById('contadorPreAgendamento').textContent = qtdPre;
+                    document.getElementById('contadorReagendamento').textContent = qtdReag;
+
+                    renderizarListaVendasFiltrada();
+                }
+            } catch (e) {
+                container.innerHTML = '<p class="text-xs text-[#ef4444] text-center py-8">Erro ao carregar dados do painel.</p>';
+            }
+        }
+
+        function filtrarStatusVendas(statusAlvo) {
+            statusFiltroVendasAtivo = statusAlvo;
+            statusAtualFiltroVendas = statusAlvo; // Atualiza a variável auxiliar para o Select inteligente
+            const balaoPre = document.getElementById('balaoPreAgendamento');
+            const balaoReag = document.getElementById('balaoReagendamento');
+
+            if (statusAlvo === 'Pré-agendamento') {
+                balaoPre.className = "cursor-pointer bg-white p-4 rounded-xl border-2 border-[#d97706] shadow-sm flex items-center justify-between transition-all hover:bg-[#fffbeb]";
+                balaoReag.className = "cursor-pointer bg-white p-4 rounded-xl border border-[#e2e8f0] shadow-sm flex items-center justify-between transition-all hover:bg-[#f8fafc]";
+            } else {
+                balaoReag.className = "cursor-pointer bg-white p-4 rounded-xl border-2 border-[#d97706] shadow-sm flex items-center justify-between transition-all hover:bg-[#fffbeb]";
+                balaoPre.className = "cursor-pointer bg-white p-4 rounded-xl border border-[#e2e8f0] shadow-sm flex items-center justify-between transition-all hover:bg-[#f8fafc]";
+            }
+            renderizarListaVendasFiltrada();
+        }
+
+        function renderizarListaVendasFiltrada() {
+            const container = document.getElementById('listaAgendamentosVendas');
+            const tipoFiltro = document.getElementById('tipoFiltroVendas').value;
+            const textoBusca = document.getElementById('inputBuscaVendas').value.toLowerCase().trim();
+
+            const filtrados = cacheAgendamentosVendas.filter(item => {
+                const st = (item.status || '').toLowerCase();
+                const matchStatus = st.includes(statusFiltroVendasAtivo.toLowerCase());
+                if (!matchStatus) return false;
+
+                if (!textoBusca) return true;
+                if (tipoFiltro === 'vendedor') return (item.responsavel || '').toLowerCase().includes(textoBusca);
+                if (tipoFiltro === 'telefone') return (item.telefone || '').toLowerCase().includes(textoBusca);
+                if (tipoFiltro === 'oa') return (item.oa || '').toLowerCase().includes(textoBusca);
+                return true;
+            });
+
+            if (filtrados.length === 0) {
+                container.innerHTML = '<p class="text-xs text-[#94a3b8] text-center py-8">Nenhum agendamento encontrado com este filtro.</p>';
+                return;
+            }
+
+            container.innerHTML = "";
+            filtrados.forEach((item, idx) => {
+                // 1. Bloco para exibir a anotação/histórico da coluna L, caso exista
+                let htmlObservacao = '';
+                if (item.observacoes && item.observacoes.trim() !== '') {
+                    htmlObservacao = `
+                        <div style="background: #f8f9fa; border-left: 3px solid #d97706; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; color: #333;">
+                            <strong style="display: block; font-size: 11px; text-transform: uppercase; color: #d97706; margin-bottom: 2px;">Histórico / Anotações Anteriores:</strong>
+                            ${item.observacoes}
+                        </div>
+                    `;
+                }
+
+                // 2. Filtro inteligente das opções do Select dependendo se é Pré-agendamento ou Reagendamento
+                let opcoesSelectHtml = '';
+                if (statusAtualFiltroVendas === 'Reagendar') {
+                    opcoesSelectHtml = `
+                        <option value="Reagendar">Reagendar Consulta</option>
+                        <option value="Cancelar">Consulta Cancelada</option>
+                    `;
+                } else {
+                    opcoesSelectHtml = `
+                        <option value="Agendamento Confirmado">Confirmar Agendamento</option>
+                        <option value="Reagendar">Reagendar Consulta</option>
+                        <option value="Cancelar">Consulta Cancelada</option>
+                    `;
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl border border-[#e2e8f0] shadow-sm space-y-3 text-xs";
+                card.innerHTML = `
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-[#f1f5f9] pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-[#d97706] text-white text-xs font-bold px-3 py-1 rounded-lg">
+                                ${item.oa} - ${item.dataConsulta} às ${item.horario}
+                            </span>
+                            <span class="font-bold text-sm text-[#1e293b]">${item.cliente}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[#64748b]"><i class="fa-solid fa-phone text-[10px] text-[#d97706]"></i> ${item.telefone}</span>
+                            <button onclick="copiarEAbrirWhatsApp('${item.telefone}')" title="WhatsApp" class="bg-[#25d366]/10 text-[#25d366] hover:bg-[#25d366]/20 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 transition-colors border border-[#bbf7d0]">
+                                <i class="fa-brands fa-whatsapp"></i> Wpp (${item.telefone})
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-[#64748b] flex flex-wrap gap-4">
+                        <span>Vendedor Responsável: <strong class="text-[#1e293b]">${item.responsavel}</strong></span>
+                        <span>Status Atual: <strong class="bg-[#fffbeb] text-[#d97706] px-2 py-0.5 rounded border border-[#fde68a]">${item.status}</strong></span>
+                    </div>
+
+                    <!-- Anotações vindas da coluna L -->
+                    ${htmlObservacao}
+
+                    <div class="bg-[#f8fafc] p-3 rounded-xl border border-[#e2e8f0] flex flex-col md:flex-row items-center gap-3">
+                        <div class="w-full md:flex-1">
+                            <label class="block text-[10px] font-bold text-[#64748b] uppercase mb-1">Ação de Confirmação:</label>
+                            <select id="acao_vendas_${idx}" onchange="controlarCamposVendas(${idx})" class="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] text-xs font-semibold bg-white focus:outline-none focus:border-[#d97706] text-[#d97706]">
+                                ${opcoesSelectHtml}
+                            </select>
+                        </div>
+                        <div class="w-full md:w-auto self-end">
+                            <button onclick="executarAcaoVendas('${item.id}', ${idx}, '${item.cliente}')" class="w-full md:w-auto bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs px-5 py-2.5 rounded-lg transition-colors shadow-sm">
+                                Registrar Ação
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="container_dinamico_vendas_${idx}" class="hidden pt-3 border-t border-[#e2e8f0] space-y-3">
+                        <div id="bloco_motivo_vendas_${idx}" class="space-y-1">
+                            <label id="label_motivo_vendas_${idx}" class="block font-bold text-[#b91c1c]">Motivo:</label>
+                            <textarea id="texto_motivo_vendas_${idx}" placeholder="Descreva o motivo..." class="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] bg-white text-xs h-16 custom-scroll"></textarea>
+                        </div>
+                        
+                        <div id="bloco_calendario_vendas_${idx}" class="hidden bg-white p-4 rounded-xl border border-[#e2e8f0] space-y-4">
+                            <span class="block font-bold text-xs text-[#300c07]">Selecione a nova data e horário:</span>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-5 bg-[#f8fafc] p-3 rounded-xl border border-[#e2e8f0] space-y-2">
+                                    <h3 class="text-xs font-bold text-[#1e293b]">1. Selecione a Data</h3>
+                                    <div class="flex items-center justify-between pb-1.5 border-b border-[#e2e8f0]">
+                                        <button onclick="mudarMesReagendamentoVendas(-1, ${idx})" class="w-6 h-6 rounded bg-[#ffffff] border border-[#cbd5e1] flex items-center justify-center text-xs"><i class="fa-solid fa-chevron-left"></i></button>
+                                        <span id="titulo_cal_vendas_${idx}" class="font-bold text-[11px] uppercase text-[#1e293b]">Mês / Ano</span>
+                                        <button onclick="mudarMesReagendamentoVendas(1, ${idx})" class="w-6 h-6 rounded bg-[#ffffff] border border-[#cbd5e1] flex items-center justify-center text-xs"><i class="fa-solid fa-chevron-right"></i></button>
+                                    </div>
+                                    <div class="grid grid-cols-7 text-center font-bold text-[9px] text-[#94a3b8]">
+                                        <div>D</div><div>S</div><div>T</div><div>Q</div><div>Q</div><div>S</div><div>S</div>
+                                    </div>
+                                    <div id="grid_cal_vendas_${idx}" class="grid grid-cols-7 gap-1 text-center"></div>
+                                </div>
+
+                                <div class="md:col-span-7 bg-[#f8fafc] p-3 rounded-xl border border-[#e2e8f0] flex flex-col justify-between space-y-3">
+                                    <div>
+                                        <div class="flex items-center justify-between pb-2 mb-2 border-b border-[#e2e8f0]">
+                                            <span class="font-bold text-xs text-[#334155]">Horários para: <span id="data_selecionada_vendas_label_${idx}" class="text-[#300c07]">Nenhuma data</span></span>
+                                            <span id="badge_status_vendas_${idx}" class="text-[9px] px-2 py-0.5 rounded font-bold bg-[#e2e8f0] text-[#64748b]">Selecione o dia</span>
+                                        </div>
+                                        <div id="horarios_cal_vendas_${idx}" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[220px] overflow-y-auto custom-scroll pr-1">
+                                            <p class="col-span-2 text-[11px] text-[#94a3b8] text-center py-4">Clique em um dia útil ao lado.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-2 border-t border-[#e2e8f0]">
+                                        <span class="text-[10px] font-bold text-[#334155] block mb-1">Horário Selecionado:</span>
+                                        <input type="text" id="horario_escolhido_vendas_${idx}" readonly placeholder="Nenhum horário novo selecionado" class="w-full px-2.5 py-1.5 bg-[#ffffff] rounded-lg text-xs border border-[#cbd5e1] font-bold text-[#300c07]" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function controlarCamposVendas(idx) {
+            const acao = document.getElementById(`acao_vendas_${idx}`).value;
+            const containerDinamico = document.getElementById(`container_dinamico_vendas_${idx}`);
+            const blocoCalendario = document.getElementById(`bloco_calendario_vendas_${idx}`);
+            const labelMotivo = document.getElementById(`label_motivo_vendas_${idx}`);
+
+            if (acao === 'Agendamento Confirmado') {
+                containerDinamico.classList.add('hidden');
+            } else {
+                containerDinamico.classList.remove('hidden');
+                if (acao === 'Reagendar') {
+                    labelMotivo.textContent = "Motivo do Reagendamento:";
+                    blocoCalendario.classList.remove('hidden');
+                    carregarCalendarioReagendamentoVendas(idx);
+                } else if (acao === 'Cancelar') {
+                    labelMotivo.textContent = "Motivo do Cancelamento:";
+                    blocoCalendario.classList.add('hidden');
+                }
+            }
+        }
+
+        async function carregarCalendarioReagendamentoVendas(idx) {
+            const ano = dataAtualReagendamentoVendas.getFullYear();
+            const mes = dataAtualReagendamentoVendas.getMonth() + 1;
+            const mesStr = `${ano}-${String(mes).padStart(2, '0')}`;
+            
+            const mesesNomes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            document.getElementById(`titulo_cal_vendas_${idx}`).textContent = `${mesesNomes[mes - 1]} / ${ano}`;
+            
+            const grid = document.getElementById(`grid_cal_vendas_${idx}`);
+            grid.innerHTML = '<div class="col-span-7 text-[10px] text-[#94a3b8] py-2">Carregando...</div>';
+
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'buscar_grade_disponibilidade', mes: mesStr }) }).then(r => r.json());
+                if (res.sucesso) {
+                    gradeReagendamentoCache = res.grade;
+                    renderizarDiasReagendamentoVendas(ano, mes, idx);
+                }
+            } catch (e) { grid.innerHTML = '<div class="col-span-7 text-[10px] text-[#ef4444]">Erro de rede.</div>'; }
+        }
+
+        function mudarMesReagendamentoVendas(direcao, idx) {
+            dataAtualReagendamentoVendas.setMonth(dataAtualReagendamentoVendas.getMonth() + direcao);
+            carregarCalendarioReagendamentoVendas(idx);
+        }
+
+        function renderizarDiasReagendamentoVendas(ano, mes, idx) {
+            const grid = document.getElementById(`grid_cal_vendas_${idx}`);
+            grid.innerHTML = "";
+
+            const primeiroDiaSemana = new Date(ano, mes - 1, 1).getDay();
+            const ultimoDiaMes = new Date(ano, mes, 0).getDate();
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+            for (let i = 0; i < primeiroDiaSemana; i++) grid.appendChild(document.createElement('div'));
+
+            for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+                const dataObj = new Date(ano, mes - 1, dia);
+                const isPassado = dataObj < hoje;
+                const dataFormatadaStr = `${String(dia).padStart(2, '0')}/${String(mes).padStart(2, '0')}/${ano}`;
+
+                const vagasDoDia = gradeReagendamentoCache.filter(item => item.data === dataFormatadaStr);
+                const vagasLivres = vagasDoDia.filter(item => item.disponivel);
+
+                const btn = document.createElement('button');
+                let classes = "p-1 rounded text-[10px] font-bold border h-9 flex flex-col items-center justify-center ";
+                
+                if (isPassado) {
+                    classes += "bg-[#f1f5f9] text-[#94a3b8] border-[#e2e8f0] cursor-not-allowed opacity-60";
+                    btn.className = classes;
+                    btn.innerHTML = `<span>${dia}</span>`;
+                } else if (vagasDoDia.length === 0) {
+                    classes += "bg-[#fef2f2] text-[#b91c1c] border-[#fecaca] opacity-80 cursor-not-allowed";
+                    btn.className = classes;
+                    btn.innerHTML = `<span>${dia}</span>`;
+                } else if (vagasLivres.length === 0) {
+                    classes += "bg-[#e2e8f0] text-[#334155] border-[#cbd5e1]";
+                    btn.className = classes;
+                    btn.innerHTML = `<span>${dia}</span><span class="text-[7px] text-[#64748b] font-bold leading-none mt-0.5">LOT</span>`;
+                    btn.onclick = () => selecionarDiaReagendamentoVendas(dataFormatadaStr, vagasDoDia, idx);
+                } else {
+                    classes += "bg-[#ffffff] text-[#1e293b] hover:bg-[#fffbeb] hover:border-[#d97706] border-[#cbd5e1]";
+                    btn.className = classes;
+                    btn.innerHTML = `<span>${dia}</span><span class="text-[7px] text-[#059669] font-extrabold leading-none mt-0.5">${vagasLivres.length} L</span>`;
+                    btn.onclick = () => selecionarDiaReagendamentoVendas(dataFormatadaStr, vagasDoDia, idx);
+                }
+                grid.appendChild(btn);
+            }
+        }
+
+        function selecionarDiaReagendamentoVendas(dataFormatadaStr, vagasDoDia, idx) {
+            dataReagendamentoGlobal = dataFormatadaStr;
+            document.getElementById(`data_selecionada_vendas_label_${idx}`).textContent = dataFormatadaStr;
+            
+            const badge = document.getElementById(`badge_status_vendas_${idx}`);
+            badge.className = "text-[9px] px-2 py-0.5 rounded font-bold bg-[#fef3c7] text-[#92400e] border border-[#fde68a]";
+            badge.textContent = "Data Selecionada";
+
+            const containerH = document.getElementById(`horarios_cal_vendas_${idx}`);
+            containerH.innerHTML = "";
+            
+            vagasDoDia.forEach(vaga => {
+                const btnH = document.createElement('div');
+                if(vaga.disponivel) {
+                    btnH.className = "p-3 rounded-xl text-xs bg-white border border-[#cbd5e1] hover:bg-[#fffbeb] hover:border-[#d97706] font-bold cursor-pointer flex items-center justify-between shadow-sm _vaga_livre_vendas";
+                    btnH.innerHTML = `<span class="font-extrabold text-sm text-[#1e293b]">${vaga.horario}</span><span class="text-[10px] text-[#d97706] bg-[#fffbeb] border border-[#d97706] px-2 py-0.5 rounded-full font-bold">Livre</span>`;
+                    btnH.onclick = () => {
+                        document.querySelectorAll(`._vaga_livre_vendas`).forEach(b => {
+                            b.classList.remove('bg-[#fffbeb]', 'border-[#d97706]');
+                            b.classList.add('bg-white', 'border-[#cbd5e1]');
+                        });
+                        btnH.classList.remove('bg-white', 'border-[#cbd5e1]');
+                        btnH.classList.add('bg-[#fffbeb]', 'border-[#d97706]');
+                        horarioReagendamentoGlobal = vaga.horario;
+                        document.getElementById(`horario_escolhido_vendas_${idx}`).value = `${dataReagendamentoGlobal} às ${horarioReagendamentoGlobal}`;
+                    };
+                } else {
+                    btnH.className = "p-3 rounded-xl text-xs bg-[#f1f5f9] border border-[#e2e8f0] flex flex-col justify-between opacity-80 cursor-not-allowed";
+                    btnH.innerHTML = `
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-extrabold text-sm text-[#94a3b8] line-through">${vaga.horario}</span>
+                            <span class="text-[9px] bg-[#fee2e2] text-[#b91c1c] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-[#fecaca]">Ocupado</span>
+                        </div>
+                        <div class="pt-1 border-t border-[#e2e8f0]">
+                            <span class="block text-[11px] font-bold text-[#1e293b]">${vaga.cliente || 'Paciente'}</span>
+                            <span class="block text-[10px] text-[#64748b]"><i class="fa-solid fa-phone text-[8px] mr-1"></i>${vaga.telefone || ''}</span>
+                            <span class="block text-[9px] font-bold text-[#94a3b8] mt-1 uppercase tracking-wide">Resp: ${vaga.responsavel || ''}</span>
+                        </div>
+                    `;
+                }
+                containerH.appendChild(btnH);
+            });
+        }
+
+        async function executarAcaoVendas(idAgendamento, idx, nomeCliente) {
+            const acao = document.getElementById(`acao_vendas_${idx}`).value;
+            const motivo = document.getElementById(`texto_motivo_vendas_${idx}`) ? document.getElementById(`texto_motivo_vendas_${idx}`).value.trim() : "";
+
+            if ((acao === 'Reagendar' || acao === 'Cancelar') && !motivo) {
+                return alert("Por favor, preencha o campo de motivo!");
+            }
+
+            if (acao === 'Reagendar' && (!dataReagendamentoGlobal || !horarioReagendamentoGlobal)) {
+                return alert("Por favor, selecione a nova data e horário para o reagendamento!");
+            }
+
+            const payload = {
+                action: 'atualizar_vendas_pendente',
+                id: idAgendamento,
+                acao: acao,
+                motivo: motivo,
+                novaData: dataReagendamentoGlobal,
+                novoHorario: horarioReagendamentoGlobal
+            };
+
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json());
+                if (res.sucesso) {
+                    alert(`Ação registrada com sucesso para ${nomeCliente}!`);
+                    carregarAgendamentosVendas();
+                } else {
+                    alert(res.mensagem || "Erro ao processar.");
+                }
+            } catch (e) { alert("Erro de conexão."); }
+        }
+
+        async function carregarAgendamentosSAC() {
+            const container = document.getElementById('listaAgendamentosSAC');
+            container.innerHTML = '<p class="text-xs text-[#94a3b8] text-center py-8"><i class="fa-solid fa-spinner fa-spin text-lg"></i><br>Buscando agendamentos confirmados...</p>';
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'buscar_agendamentos_ativos' }) }).then(r => r.json());
+                if (res.sucesso) {
+                    const agendamentosConfirmados = res.agendamentos.filter(item => {
+                        const statusVal = item.status ? item.status.trim().toLowerCase() : '';
+                        const infoDJ = item.colM ? item.colM.trim().toLowerCase() : '';
+                        
+                        if (statusVal.includes("cancelado") || infoDJ.includes("registrado no dj")) {
+                            return false; 
+                        }
+                        return statusVal === 'agendamento confirmado';
+                    });
+
+                    if (agendamentosConfirmados.length === 0) {
+                        container.innerHTML = '<p class="text-xs text-[#94a3b8] text-center py-8">Nenhum agendamento confirmado aguardando registro no DJ.</p>';
+                        return;
+                    }
+                    container.innerHTML = "";
+                    agendamentosConfirmados.forEach((item, idx) => {
+                        const card = document.createElement('div');
+                        card.className = "p-4 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-3 text-xs";
+                        card.innerHTML = `
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b border-[#e2e8f0] pb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-[#0284c7] text-white px-2.5 py-1 rounded font-extrabold">${item.oa} - ${item.dataConsulta} às ${item.horario}</span>
+                                    <span class="font-bold text-sm text-[#1e293b]">${item.cliente}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[#64748b]"><i class="fa-solid fa-phone text-[10px] text-[#0284c7]"></i> ${item.telefone}</span>
+                                    <button onclick="copiarEAbrirWhatsApp('${item.telefone}')" title="WhatsApp" class="bg-[#25d366]/10 text-[#25d366] hover:bg-[#25d366]/20 px-2 py-0.5 rounded font-bold flex items-center gap-1 transition-colors">
+                                        <i class="fa-brands fa-whatsapp"></i> Wpp
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="text-[11px] text-[#64748b] font-medium bg-[#f0f9ff] px-3 py-1.5 rounded-lg border border-[#bae6fd]">
+                                Agendado por: <b class="text-[#0284c7]">${item.responsavel || 'Não informado'}</b>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                                <div>
+                                    <label class="block font-bold text-[#334155] mb-1">1. Origem do Agendamento:</label>
+                                    <select id="origem_cli_${idx}" class="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] bg-white text-xs font-semibold focus:outline-none">
+                                        <option value="Digital" ${item.origem === 'Digital' ? 'selected' : ''}>Digital</option>
+                                        <option value="Filial" ${item.origem === 'Filial' ? 'selected' : ''}>Filial</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-end pt-5">
+                                    <button onclick="executarRegistroDJ('${item.id}', ${idx}, '${item.cliente}', '${item.status}')" class="w-full bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-sm">
+                                        Registrar no DJ
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                }
+            } catch (e) {
+                container.innerHTML = '<p class="text-xs text-[#ef4444] text-center py-8">Erro ao carregar dados do SAC.</p>';
+            }
+        }
+
+        async function executarRegistroDJ(idAgendamento, idx, nomeCliente, statusAtual) {
+            const origemSelecionada = document.getElementById(`origem_cli_${idx}`).value;
+            const dataHoraRegistro = new Date().toLocaleString('pt-BR');
+            
+            const payload = {
+                action: 'atualizar_sac_completo',
+                id: idAgendamento,
+                origem: origemSelecionada,
+                status: statusAtual, 
+                colM: `Registrado no DJ (${origemSelecionada})`,
+                colN: usuarioAtual || 'Usuário SAC',
+                colO: dataHoraRegistro
+            };
+
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json());
+                if (res.sucesso) {
+                    alert(`Registrado no DJ com sucesso para ${nomeCliente}!`);
+                    carregarAgendamentosSAC(); 
+                } else {
+                    alert(res.mensagem || "Erro ao processar.");
+                }
+            } catch (e) { alert("Erro de conexão."); }
+        }
+
+        async function carregarAgendamentosFisio() {
+            const container = document.getElementById('listaAgendamentosFisio');
+            container.innerHTML = '<p class="text-xs text-[#94a3b8] text-center py-8"><i class="fa-solid fa-spinner fa-spin text-lg"></i><br>Buscando consultas liberadas...</p>';
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'buscar_agendamentos_ativos' }) }).then(r => r.json());
+                if (res.sucesso) {
+                    const agendamentosFisio = res.agendamentos.filter(item => item.status && (item.status.trim() === 'Agendamento Confirmado' || item.status.trim().includes('Liberado')));
+
+                    if (agendamentosFisio.length === 0) {
+                        container.innerHTML = '<p class="text-xs text-[#94a3b8] text-center py-8">Nenhuma consulta liberada para atendimento no momento.</p>';
+                        return;
+                    }
+                    container.innerHTML = "";
+                    agendamentosFisio.forEach((item, idx) => {
+                        const card = document.createElement('div');
+                        card.className = "p-4 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-3 text-xs";
+                        
+                        card.innerHTML = `
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b border-[#e2e8f0] pb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-[#059669] text-white px-2.5 py-1 rounded font-extrabold">${item.oa} - ${item.dataConsulta} às ${item.horario}</span>
+                                    <span class="font-bold text-sm text-[#1e293b]">${item.cliente}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[#64748b]"><i class="fa-solid fa-phone text-[10px] text-[#059669]"></i> ${item.telefone}</span>
+                                    <button onclick="copiarEAbrirWhatsApp('${item.telefone}')" title="WhatsApp" class="bg-[#25d366]/10 text-[#25d366] hover:bg-[#25d366]/20 px-2 py-0.5 rounded font-bold flex items-center gap-1 transition-colors">
+                                        <i class="fa-brands fa-whatsapp"></i> Wpp
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="text-[11px] text-[#64748b] font-medium bg-[#ecfdf5] px-3 py-1.5 rounded-lg border border-[#a7f3d0]">
+                                Agendado por: <b class="text-[#059669]">${item.responsavel || 'Não informado'}</b>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                                <div class="md:col-span-8 space-y-2">
+                                    <div>
+                                        <label class="block font-bold text-[#334155] mb-1"><i class="fa-solid fa-lock mr-1 text-[#059669]"></i> Anotações Anteriores (Histórico):</label>
+                                        <textarea id="obs_fisio_antigas_${idx}" class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] bg-[#f1f5f9] text-xs text-[#64748b] focus:outline-none h-16 custom-scroll" readonly>${item.observacoes || ''}</textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-[#334155] mb-1"><i class="fa-solid fa-plus mr-1 text-[#059669]"></i> Adicionar Nova Anotação:</label>
+                                        <textarea id="obs_fisio_nova_${idx}" placeholder="Digite a nova observação..." class="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] bg-white text-xs focus:outline-none focus:border-[#059669] h-16 custom-scroll"></textarea>
+                                    </div>
+                                </div>
+                                <div class="md:col-span-4 space-y-2">
+                                    <div>
+                                        <label class="block font-bold text-[#334155] mb-1">Status da Consulta:</label>
+                                        <select id="statusConsultaFisio_${idx}" class="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] bg-white text-xs font-semibold focus:outline-none">
+                                            <option value="Atendimento Finalizado">Atendimento Finalizado</option>
+                                            <option value="Paciente Faltou">Paciente Faltou</option>
+                                            <option value="Reagendar">Reagendar Consulta</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-end pt-5">
+                                        <button onclick="executarFisio('${item.id}', ${idx}, '${item.cliente}')" class="w-full bg-[#059669] hover:bg-[#047857] text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-sm">
+                                            Salvar Prontuário
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                }
+            } catch (e) {
+                container.innerHTML = '<p class="text-xs text-[#ef4444] text-center py-8">Erro ao carregar dados de Fisioterapia.</p>';
+            }
+        }
+
+        async function executarFisio(idAgendamento, idx, nomeCliente) {
+            const statusSelecionado = document.getElementById(`statusConsultaFisio_${idx}`).value;
+            const obsAntiga = document.getElementById(`obs_fisio_antigas_${idx}`).value.trim();
+            const obsNova = document.getElementById(`obs_fisio_nova_${idx}`).value.trim();
+
+            let anotacaoFinal = obsAntiga;
+            if (obsNova) {
+                const dataHoraAtual = new Date().toLocaleString('pt-BR');
+                anotacaoFinal = obsAntiga ? `${obsAntiga}\n[${dataHoraAtual}] Fisio: ${obsNova}` : `[${dataHoraAtual}] Fisio: ${obsNova}`;
+            }
+
+            const payload = {
+                action: 'atualizar_fisio',
+                id: idAgendamento,
+                statusConsulta: statusSelecionado,
+                anotacoes: anotacaoFinal,
+                colN: usuarioAtual || 'Fisioterapeuta'
+            };
+
+            try {
+                const res = await fetch(URL_DO_SCRIPT, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json());
+                if (res.sucesso) {
+                    alert(`Prontuário de ${nomeCliente} salvo com sucesso!`);
+                    carregarAgendamentosFisio(); 
+                } else {
+                    alert(res.mensagem || "Erro ao processar.");
+                }
+            } catch (e) { alert("Erro de conexão."); }
+        }
+
+    </script>
+</body>
+</html>
