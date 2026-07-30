@@ -444,7 +444,27 @@
             }
         }
 
-        function atualizarResponsaveisPorSetor() {
+      function enviarReagendamento() {
+  // Pega o nome que foi salvo no login
+  let usuarioSessao = localStorage.getItem('usuarioLogado') || "Desconhecido";
+
+  let dadosEnvio = {
+    id: idLinha,
+    acao: "Reagendar",
+    novaData: document.getElementById('novaData').value,
+    novoHorario: document.getElementById('novoHorario').value,
+    motivo: document.getElementById('motivo').value,
+    usuarioLogado: usuarioSessao // <-- Aqui você envia o nome correto para o Apps Script!
+  };
+
+  google.script.run
+    .withSuccessHandler(function(resposta) {
+      if(resposta.sucesso) alert("Reagendado com sucesso!");
+    })
+    .atualizarVendasPendente(dadosEnvio);
+}
+
+  function atualizarResponsaveisPorSetor() {
             const setorSelecionado = document.getElementById('setorVendedor').value;
             const selectVendedor = document.getElementById('nomeVendedor');
 
