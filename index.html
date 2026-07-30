@@ -249,6 +249,23 @@
                     </div>
                 </div>
             </div>
+            <!-- Bloco de Consulta de Histórico do Paciente -->
+<div class="card-busca" style="background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+  <h3 style="margin-top: 0; color: #333;">Consultar Histórico do Paciente</h3>
+  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <select id="tipoBusca" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      <option value="nome">Nome</option>
+      <option value="cpf">CPF</option>
+      <option value="telefone">Telefone</option>
+    </select>
+    <input type="text" id="termoBusca" placeholder="Digite para buscar..." style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; flex: 1; min-width: 200px;">
+    <button onclick="executarBuscaPaciente()" style="padding: 8px 16px; background: #d97706; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Buscar</button>
+  </div>
+</div>
+
+<div id="resultadoHistorico">
+  <!-- A tabela de atendimentos será injetada aqui via JavaScript -->
+</div>
 
             <!-- TELA AGENDAMENTOS -->
             <div id="view-modulo-agendamento" class="fade-in hidden space-y-6">
