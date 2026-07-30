@@ -231,24 +231,44 @@
                 </div>
             </div>
 
-            <!-- TELA MÓDULO FISIOTERAPIA -->
-            <div id="view-modulo-fisio" class="fade-in hidden space-y-6">
-                <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-4">
-                    <div>
-                        <h2 class="font-bold text-xl text-[#059669]">Módulo Fisioterapia - Prontuários e Status</h2>
-                        <p class="text-sm text-[#64748b]">Insira anotações e atualize o status da consulta.</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="trocarTela('home')" class="text-xs bg-[#ffffff] text-[#64748b] hover:text-[#1e293b] border border-[#e2e8f0] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-arrow-left mr-1"></i> Voltar</button>
-                        <button onclick="carregarAgendamentosFisio()" class="text-xs bg-[#ecfdf5] text-[#059669] hover:bg-[#d1fae5] border border-[#a7f3d0] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-rotate mr-1"></i> Atualizar Lista</button>
-                    </div>
-                </div>
-                <div class="bg-[#ffffff] rounded-2xl p-5 border border-[#e2e8f0] space-y-4">
-                    <div id="listaAgendamentosFisio" class="space-y-3">
-                        <p class="text-xs text-[#94a3b8] text-center py-8">Carregando consultas liberadas...</p>
-                    </div>
-                </div>
-            </div>
+          <!-- TELA MÓDULO FISIOTERAPIA -->
+<div id="view-modulo-fisio" class="fade-in hidden space-y-6">
+    <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-4">
+        <div>
+            <h2 class="font-bold text-xl text-[#059669]">Módulo Fisioterapia - Prontuários e Status</h2>
+            <p class="text-sm text-[#64748b]">Insira anotações, atualize o status e consulte o histórico dos pacientes.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="trocarTela('home')" class="text-xs bg-[#ffffff] text-[#64748b] hover:text-[#1e293b] border border-[#e2e8f0] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-arrow-left mr-1"></i> Voltar</button>
+            <button onclick="carregarAgendamentosFisio()" class="text-xs bg-[#ecfdf5] text-[#059669] hover:bg-[#d1fae5] border border-[#a7f3d0] px-3 py-2 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-rotate mr-1"></i> Atualizar Lista</button>
+        </div>
+    </div>
+
+    <!-- Bloco de Consulta de Histórico do Paciente (Movido para dentro do módulo correto) -->
+    <div class="card-busca bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm">
+        <h3 class="font-bold text-sm text-[#1e293b] mb-3">Consultar Histórico Completo do Paciente</h3>
+        <div class="flex items-center gap-3 flex-wrap">
+            <select id="tipoBusca" class="p-2 border border-[#ccc] rounded-lg text-sm bg-white">
+                <option value="nome">Nome</option>
+                <option value="cpf">CPF</option>
+                <option value="telefone">Telefone</option>
+            </select>
+            <input type="text" id="termoBusca" placeholder="Digite para buscar..." class="p-2 border border-[#ccc] rounded-lg text-sm flex-1 min-width-[200px]">
+            <button onclick="executarBuscaPaciente()" class="px-4 py-2 bg-[#d97706] text-white rounded-lg text-sm font-bold hover:bg-[#b45309] transition-colors">Buscar</button>
+        </div>
+        <div id="resultadoHistorico" class="mt-4">
+            <!-- A tabela de atendimentos será injetada aqui via JavaScript -->
+        </div>
+    </div>
+
+    <!-- Lista de Agendamentos Atuais -->
+    <div class="bg-[#ffffff] rounded-2xl p-5 border border-[#e2e8f0] space-y-4">
+        <h3 class="font-bold text-sm text-[#1e293b]">Atendimentos Pendentes / Recentes</h3>
+        <div id="listaAgendamentosFisio" class="space-y-3">
+            <p class="text-xs text-[#94a3b8] text-center py-8">Carregando consultas liberadas...</p>
+        </div>
+    </div>
+</div>
             <!-- Bloco de Consulta de Histórico do Paciente -->
 <div class="card-busca" style="background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
   <h3 style="margin-top: 0; color: #333;">Consultar Histórico do Paciente</h3>
