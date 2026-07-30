@@ -692,7 +692,7 @@
                     };
                 } else {
                     // VAGA OCUPADA OU HORÁRIO PASSADO ( CINZA / BLOQUEADO )
-                    let motivoTexto = "Ocupado";
+                    let motivoTexto = "Reservado";
                     if (horarioPassado && vaga.disponivel) {
                         motivoTexto = "Expirado";
                     }
@@ -701,7 +701,7 @@
                     const oaOcupado = vaga.oa ? `(OA: ${vaga.oa})` : '';
                     const responsavelOcupado = vaga.responsavel ? vaga.responsavel : 'Não informado';
 
-                    btnH.className = "p-3 rounded-xl text-xs bg-[#f1f5f9] border border-[#e2e8f0] flex flex-col justify-between opacity-80 cursor-not-allowed shadow-none";
+                    btnH.className = "p-3 rounded-xl text-xs bg-[#fecaca] border border-[#e2e8f0] flex flex-col justify-between opacity-80 cursor-not-allowed shadow-none";
                     btnH.innerHTML = `
                         <div class="flex items-center justify-between mb-1">
                             <span class="font-extrabold text-sm text-[#94a3b8] line-through">${vaga.horario}</span>
