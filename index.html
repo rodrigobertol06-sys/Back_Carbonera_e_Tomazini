@@ -1308,12 +1308,16 @@
                 anotacaoFinal = obsAntiga ? `${obsAntiga}\n[${dataHoraAtual}] Fisio: ${obsNova}` : `[${dataHoraAtual}] Fisio: ${obsNova}`;
             }
 
+            const nomeResponsavelLogado = usuarioAtual || 'Marieli Bertol';
+
             const payload = {
                 action: 'atualizar_fisio',
                 id: idAgendamento,
                 statusConsulta: statusSelecionado,
                 anotacoes: anotacaoFinal,
-                colN: usuarioAtual || 'Fisioterapeuta'
+                usuarioLogado: nomeResponsavelLogado,
+                responsavel: nomeResponsavelLogado,
+                colN: nomeResponsavelLogado
             };
 
             try {
